@@ -1,0 +1,295 @@
+
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RizzUp Ai</title>
+<style>
+  body {
+    margin:0; padding:0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #a8d0ff, #ff9cee, #be93fd, #ff6f91);
+    color: #fff;
+  }
+  header {
+    padding: 2rem;
+    text-align: center;
+    font-weight: 700;
+    font-size: 2rem;
+    text-shadow: 0 0 10px #000000aa;
+  }
+  .button-primary {
+    background: #304ffe;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 30px;
+    font-size: 1.2rem;
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 0 15px #304ffeaa;
+    transition: box-shadow 0.3s ease;
+  }
+  .button-primary:hover {
+    box-shadow: 0 0 25px #304ffeff;
+  }
+  main {
+    text-align: center;
+    margin-top: 3rem;
+  }
+  section {
+    display: none;
+    margin-top: 2rem;
+  }
+  section.active {
+    display: block;
+  }
+  .choice-btn {
+    background: rgba(255,255,255,0.2);
+    border: 2px solid #fff;
+    border-radius: 25px;
+    padding: 1rem 3rem;
+    margin: 1rem;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #fff;
+    transition: background 0.3s ease;
+  }
+  .choice-btn:hover {
+    background: rgba(255,255,255,0.5);
+  }
+  #chatResponse {
+    margin-top: 2rem;
+    font-weight: 600;
+    min-height: 80px;
+  }
+  footer {
+    margin-top: 5rem;
+    text-align: center;
+    font-size: 0.9rem;
+    opacity: 0.7;
+  }
+  #micBtn {
+    background: #ff6f91;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 25px;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    margin-left: 10px;
+    box-shadow: 0 0 10px #ff6f91aa;
+    transition: box-shadow 0.3s ease;
+  }
+  #micBtn.listening {
+    box-shadow: 0 0 25px #ff6f91ff;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  RizzUp Ai je uvek tu za tebe!
+</header>
+
+<main>
+  <button id="startBtn" class="button-primary">Započni</button>
+
+  <section id="genderSection">
+    <h2>Ko si ti?</h2>
+    <button class="choice-btn" data-gender="musko">Muško</button>
+    <button class="choice-btn" data-gender="zensko">Žensko</button>
+  </section>
+
+  <section id="purposeSection">
+    <h2>Šta tražiš?</h2>
+    <button class="choice-btn" data-purpose="flert">Flert</button>
+    <button class="choice-btn" data-purpose="veza">Prava veza</button>
+    <button class="choice-btn" data-purpose="zezanje">Zajebancija</button>
+  </section>
+
+  <section id="chatSection">
+    <h2>RizzUp Ai Chat</h2>
+    <textarea id="userMessage" rows="4" style="width: 80%;" placeholder="Unesi poruku..."></textarea>
+    <button id="micBtn" title="Klikni da pričaš">🎤</button><br/><br/>
+    <button id="sendBtn" class="button-primary">Pošalji</button>
+
+    <div id="chatResponse"></div>
+
+    <div style="margin-top:1rem;">
+      <label for="voiceSelect">Izaberi glas:</label>
+      <select id="voiceSelect">
+        <option value="glas1">Brat iz kraja</option>
+        <option value="glas2">Kul lik</option>
+        <option value="glas3">Romantičar</option>
+        <option value="glas4">Smireni</option>
+      </select>
+    </div>
+  </section>
+</main>
+
+<footer>
+  📧 drobnjakoviclazar1@gmail.com | 📷 @drobnjakovic.lazar | 🎵 @ray_sist23
+</footer>
+
+<script>
+  const startBtn = document.getElementById('startBtn');
+  const genderSection = document.getElementById('genderSection');
+  const purposeSection = document.getElementById('purposeSection');
+  const chatSection = document.getElementById('chatSection');
+  const choiceBtns = document.querySelectorAll('.choice-btn');
+  const userMessage = document.getElementById('userMessage');
+  const sendBtn = document.getElementById('sendBtn');
+  const chatResponse = document.getElementById('chatResponse');
+  const voiceSelect = document.getElementById('voiceSelect');
+  const micBtn = document.getElementById('micBtn');
+
+  let userGender = null;
+  let userPurpose = null;
+  let recognizing = false;
+  let recognition;
+
+  // Start screen -> Gender selection
+  startBtn.onclick = () => {
+    startBtn.style.display = 'none';
+    genderSection.classList.add('active');
+  };
+
+  // Gender selection
+  genderSection.addEventListener('click', e => {
+    if(e.target.classList.contains('choice-btn')) {
+      userGender = e.target.dataset.gender;
+      genderSection.classList.remove('active');
+      purposeSection.classList.add('active');
+    }
+  });
+
+  // Purpose selection
+  purposeSection.addEventListener('click', e => {
+    if(e.target.classList.contains('choice-btn')) {
+      userPurpose = e.target.dataset.purpose;
+      purposeSection.classList.remove('active');
+      chatSection.classList.add('active');
+    }
+  });
+
+  // Send message handler
+  sendBtn.onclick = () => {
+    let message = userMessage.value.trim();
+    if(!message) return alert('Unesi poruku!');
+
+    chatResponse.textContent = 'RizzUp Ai razmišlja...';
+
+    // Simulacija odgovora - ovde se poveži sa AI backendom
+    setTimeout(() => {
+      let response = generateResponse(message, userGender, userPurpose, voiceSelect.value);
+      chatResponse.textContent = response;
+      speakText(response);
+    }, 1200);
+
+    userMessage.value = '';
+  };
+
+  // Function to generate AI response (simulated)
+  function generateResponse(msg, gender, purpose, voice) {
+    let base = '';
+    if(purpose === 'flert') base = 'Brat iz kraja kaže: ';
+    else if(purpose === 'veza') base = 'Romantičar ti poručuje: ';
+    else if(purpose === 'zezanje') base = 'Zezalica kaže: ';
+    else base = 'RizzUp AI kaže: ';
+
+    let reply = '';
+    switch(voice) {
+      case 'glas1':
+        reply = 'Ej, brate, ova poruka je kao da je sa terase stigla! Odgovori joj sa osmehom 😏';
+        break;
+      case 'glas2':
+        reply = 'Kul lik kaže: Opusti se i budi svoj, to je najjače!';
+        break;
+      case 'glas3':
+        reply = 'Romantičar kaže: Pošalji joj da misliš na nju i da ti je stalo 💖';
+        break;
+      case 'glas4':
+        reply = 'Smireni glas kaže: Budi hladan i ne brzaj sa odgovorom.';
+        break;
+      default:
+        reply = 'RizzUp AI ti poručuje: Uvek budi iskren.';
+    }
+    return base + reply;
+  }
+
+  // Speech synthesis function for reading response
+  function speakText(text) {
+    if (!('speechSynthesis' in window)) return;
+    const utterance = new SpeechSynthesisUtterance(text);
+    // Customize voice by selection (basic demo, real voices require more handling)
+    const voices = window.speechSynthesis.getVoices();
+    switch(voiceSelect.value) {
+      case 'glas1':
+        utterance.voice = voices.find(v => v.lang.startsWith('sr') && v.name.includes('Male')) || voices[0];
+        break;
+      case 'glas2':
+        utterance.voice = voices.find(v => v.lang.startsWith('sr') && v.name.includes('Female')) || voices[1];
+        break;
+      case 'glas3':
+        utterance.voice = voices.find(v => v.lang.startsWith('sr') && v.name.includes('Female')) || voices[2];
+        break;
+      case 'glas4':
+        utterance.voice = voices.find(v => v.lang.startsWith('sr')) || voices[3];
+        break;
+      default:
+        utterance.voice = voices[0];
+    }
+    speechSynthesis.speak(utterance);
+  }
+
+  // Voice recognition setup (Web Speech API)
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.lang = 'sr-RS';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      recognizing = true;
+      micBtn.classList.add('listening');
+      micBtn.textContent = '🎙️...';
+    };
+
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error', event);
+      recognizing = false;
+      micBtn.classList.remove('listening');
+      micBtn.textContent = '🎤';
+    };
+
+    recognition.onend = () => {
+      recognizing = false;
+      micBtn.classList.remove('listening');
+      micBtn.textContent = '🎤';
+    };
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      userMessage.value = transcript;
+      recognition.stop();
+      micBtn.classList.remove('listening');
+      micBtn.textContent = '🎤';
+    };
+
+    micBtn.onclick = () => {
+      if (recognizing) {
+        recognition.stop();
+        return;
+      }
+      recognition.start();
+    };
+  } else {
+    micBtn.style.display = 'none'; // hide mic button if not supported
+  }
+</script>
+
+</body>
+</html>
